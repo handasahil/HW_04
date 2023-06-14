@@ -104,10 +104,12 @@ public class ExternalChainingHashMap<K, V> {
         }
 
         ExternalChainingMapEntry<K, V> add = new ExternalChainingMapEntry<>(key, value);
-        double sizeD = size;
-        double lengthD = table.length;
 
-        if ((sizeD + 1) / lengthD > MAX_LOAD_FACTOR) {
+        double loadFactor = (double) (size + 1) / (double) table.length;
+//        double sizeD = size;
+//        double lengthD = table.length;
+
+        if (loadFactor > MAX_LOAD_FACTOR) {
             resizeBackingTable(2 * table.length + 1);
         }
 
@@ -135,6 +137,7 @@ public class ExternalChainingHashMap<K, V> {
 
             add.setNext(table[hash]);
             table[hash] = add;
+            size++;
         }
         return null;
     }
@@ -320,23 +323,24 @@ public class ExternalChainingHashMap<K, V> {
             throw new IllegalArgumentException("resizeBackingTable: the specified length is less than the number of " +
                     "items in the hash map");
         }
-        ExternalChainingHashMap<K, V> temp = new ExternalChainingHashMap<>(length);
+        ExternalChainingMapEntry<K, V>[] temp = new ExternalChainingMapEntry[length];
 
-        int trueSize = size;
-        size = 1000;
 
         for (int i = 0; i < table.length; i++) {
-            if (table[i] != null) {
+            while (table[i] != null) {
+                int hash = Math.abs(table[i].getKey().hashCode() % temp.length);
+
                 ExternalChainingMapEntry<K, V> curr = table[i];
-                temp.put(curr.getKey(), curr.getValue());
-                while (curr.getNext() != null) {
-                    curr = curr.getNext();
-                    temp.put((curr.getKey()), curr.getValue());
+                table[i] = curr.getNext();
+
+                if (temp[hash] != null) {
+                    curr.setNext(temp[hash]);
                 }
+                temp[hash] = curr;
             }
         }
 
-        size = trueSize;
+        table = temp;
     }
 
     /**

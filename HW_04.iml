@@ -22,5 +22,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="torodb.testing.mongodb.junit.5" level="project" />
   </component>
 </module>
