@@ -1,560 +1,363 @@
-import static org.junit.Assert.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-/**
- * This is a basic set of unit tests for ExternalChainingHashMap.
- *
- * Passing these tests doesn't guarantee any grade on these assignments. These
- * student JUnits that we provide should be thought of as a sanity check to
- * help you get started on the homework and writing JUnits in general.
- *
- * We highly encourage you to write your own set of JUnits for each homework
- * to cover edge cases you can think of for each data structure. Your code must
- * work correctly and efficiently in all cases, which is why it's important
- * to write comprehensive tests to cover as many cases as possible.
- *
- * @author Prajval Manivannan
- * @version 1.0
- */
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class PeerTest {
-
     private static final int TIMEOUT = 200;
-    private ExternalChainingHashMap<Integer, String> map;
-
-    private ExternalChainingHashMap<Integer, String> presetMap;
-    private ExternalChainingMapEntry<Integer, String>[] expectedPreset;
+    private ExternalChainingHashMap<Integer, String> map1;
+    private ExternalChainingHashMap<String, String> map2;
 
     @Before
     public void setUp() {
-        map = new ExternalChainingHashMap<>();
-
-        presetMap = new ExternalChainingHashMap<>();
-        presetMap.put(13, "A");
-        presetMap.put(26, "B");
-        presetMap.put(39, "C");
-        presetMap.put(14, "D");
-        presetMap.put(27, "E");
-        presetMap.put(40, "F");
-        presetMap.put(15, "G");
-        presetMap.put(28, "H");
-        //A "full" hashmap given LF = 0.67
-
-        expectedPreset =
-                (ExternalChainingMapEntry<Integer, String>[])
-                        new ExternalChainingMapEntry[13];
-
-        ExternalChainingMapEntry<Integer, String> firstRow =
-                new ExternalChainingMapEntry<>(39, "C");
-        firstRow.setNext(new ExternalChainingMapEntry<>(26, "B"));
-        firstRow.getNext().setNext(new ExternalChainingMapEntry<>(13, "A"));
-
-        ExternalChainingMapEntry<Integer, String> secondRow =
-                new ExternalChainingMapEntry<>(40, "F");
-        secondRow.setNext(new ExternalChainingMapEntry<>(27, "E"));
-        secondRow.getNext().setNext(new ExternalChainingMapEntry<>(14, "D"));
-
-        ExternalChainingMapEntry<Integer, String> thirdRow =
-                new ExternalChainingMapEntry<>(28, "H");
-        thirdRow.setNext(new ExternalChainingMapEntry<>(15, "G"));
-
-        expectedPreset[0] = firstRow;
-        expectedPreset[1] = secondRow;
-        expectedPreset[2] = thirdRow;
-
-        assertMapEquals(expectedPreset, presetMap.getTable());
+        map1 = new ExternalChainingHashMap<>();
+        map2 = new ExternalChainingHashMap<>();
     }
 
     @Test(timeout = TIMEOUT)
-    public void testInitialization() {
-        assertEquals(0, map.size());
-        assertMapEquals(new ExternalChainingMapEntry[ExternalChainingHashMap
-                .INITIAL_CAPACITY], map.getTable());
-    }
-
-    //Level 1 of Testing Put - No Chaining But Resizing
-    @Test(timeout = TIMEOUT)
-    public void testPutTheEnglishAlphabet() {
-        // [(1, A), (2, B), (3, C), (4, D), (5, E), _, _, _, _, _, _, _, _]
-        ExternalChainingMapEntry<Integer, String>[] expected =
-                (ExternalChainingMapEntry<Integer, String>[])
-                        new ExternalChainingMapEntry[ExternalChainingHashMap
-                                .INITIAL_CAPACITY];
-        for (int i = 1; i < 9; i++) {
-            expected[i] = new ExternalChainingMapEntry<>(i,
-                    (((String.valueOf(((char) (64 + i))))).toString()));
-        }
-
-        assertNull(map.put(1, "A"));
-        assertNull(map.put(2, "B"));
-        assertNull(map.put(3, "C"));
-        assertNull(map.put(4, "D"));
-        assertNull(map.put(5, "E"));
-        assertNull(map.put(6, "F"));
-        assertNull(map.put(7, "G"));
-        assertNull(map.put(8, "H"));
-        assertMapEquals(expected, map.getTable());
-        //Resizing of backing table should occur here before LF = 8.71.
-        expected =
-                (ExternalChainingMapEntry<Integer, String>[])
-                        new ExternalChainingMapEntry[27];
-        for (int i = 1; i < 19; i++) {
-            expected[i] = new ExternalChainingMapEntry<>(i,
-                    (((String.valueOf(((char) (64 + i)))))));
-        }
-
-        assertNull(map.put(9, "I"));
-        assertNull(map.put(10, "J"));
-        assertNull(map.put(11, "K"));
-        assertNull(map.put(12, "L"));
-        assertNull(map.put(13, "M"));
-        assertNull(map.put(14, "N"));
-        assertNull(map.put(15, "O"));
-        assertNull(map.put(16, "P"));
-        assertNull(map.put(17, "Q"));
-        assertNull(map.put(18, "R"));
-        //Resizing of backing table should occur here before size exceeds 18.09.
-        assertMapEquals(expected, map.getTable());
-        expected =
-                (ExternalChainingMapEntry<Integer, String>[])
-                        new ExternalChainingMapEntry[55];
-        /*
-        Resizing of backing table would occur before size exceeds 36.85 --
-        which it will not reach for this test. This is the last resize.
-         */
-        for (int i = 1; i < 27; i++) {
-            expected[i] = new ExternalChainingMapEntry<>(i,
-                    (((String.valueOf(((char) (64 + i)))))));
-        }
-        assertNull(map.put(19, "S"));
-        assertNull(map.put(20, "T"));
-        assertNull(map.put(21, "U"));
-        assertNull(map.put(22, "V"));
-        assertNull(map.put(23, "W"));
-        assertNull(map.put(24, "X"));
-        assertNull(map.put(25, "Y"));
-        assertNull(map.put(26, "Z"));
-        assertMapEquals(expected, map.getTable());
-
-        assertEquals(26, map.size());
-    }
-
-    //Level 2 of Testing Put (Larger Numbers) - Chaining and Resizing
-    @Test(timeout = TIMEOUT)
-    public void testPutPokedexEntries() {
-        assertNull(map.put(151, "Mew")); //Index 8
-        assertNull(map.put(150, "Mewtwo")); //Index 7
-        assertNull(map.put(149, "Dragonite")); //Index 6
-        assertNull(map.put(6, "Charizard")); //Index 6
-        assertNull(map.put(15, "Beedrill")); //Index 2
-        assertNull(map.put(125, "Electabuzz")); //Index 8
-        assertNull(map.put(28, "Sand")); //Index 2
-        assertEquals("Sand", map.put(28, "Sandslash")); //Index 2
-        assertNull(map.put(145, "Zapdos")); //Index 2
-        //Resize of map occurs after adding here
-        ExternalChainingMapEntry<Integer, String>[] expected =
-                (ExternalChainingMapEntry<Integer, String>[])
-                        new ExternalChainingMapEntry[ExternalChainingHashMap
-                                .INITIAL_CAPACITY];
-        /*
-         null
-         null
-         Zapdos ~> Sandslash ~> Beedrill
-         null
-         null
-         null
-         Charizard ~> Dragonite
-         Mewtwo
-         Electabuzz ~> Mew
-         null
-         null
-         null
-         null
-         null
-         */
-        expected[2] = new ExternalChainingMapEntry<>(145, "Zapdos");
-        expected[2].setNext(new ExternalChainingMapEntry<>(28, "Sandslash"));
-        expected[2].getNext().setNext(new ExternalChainingMapEntry<>(15,
-                "Beedrill"));
-
-        expected[6] = new ExternalChainingMapEntry<>(6, "Charizard");
-        expected[6].setNext(new ExternalChainingMapEntry<>(149, "Dragonite"));
-
-        expected[7] = new ExternalChainingMapEntry<>(150, "Mewtwo");
-
-        expected[8] = new ExternalChainingMapEntry<>(125, "Electabuzz");
-        expected[8].setNext(new ExternalChainingMapEntry<>(151, "Mew"));
-        assertMapEquals(expected, map.getTable());
-        assertEquals(8, map.size());
-        assertEquals(13, map.getTable().length);
-        assertNull(map.put(258, "Mudkip")); //Index 15 (in resized HashMap)
-        assertEquals(9, map.size());
-        //Resizes from 13 to 27 when size > 8.71
-        expected =
-                (ExternalChainingMapEntry<Integer, String>[])
-                        new ExternalChainingMapEntry[27];
-
-        assertEquals(27, map.getTable().length);
-        expected[10] = new ExternalChainingMapEntry<>(145, "Zapdos");
-        expected[1] = new ExternalChainingMapEntry<>(28, "Sandslash");
-
-        expected[6] = new ExternalChainingMapEntry<>(6, "Charizard");
-        expected[14] = new ExternalChainingMapEntry<>(149, "Dragonite");
-
-        ExternalChainingMapEntry<Integer, String> mudkip =
-                new ExternalChainingMapEntry<>(258, "Mudkip");
-        ExternalChainingMapEntry<Integer, String> mewtwo =
-                new ExternalChainingMapEntry<>(150, "Mewtwo");
-        ExternalChainingMapEntry<Integer, String> beedrill =
-                new ExternalChainingMapEntry<>(15, "Beedrill");
-
-        mudkip.setNext(mewtwo);
-        mewtwo.setNext(beedrill);
-        expected[15] = mudkip;
-
-        expected[17] = new ExternalChainingMapEntry<>(125, "Electabuzz");
-        expected[16] = new ExternalChainingMapEntry<>(151, "Mew");
-
-        //printHashTable();
-
-        assertMapEquals(expected, map.getTable());
-        assertEquals(9, map.size());
-        /*
-         null
-         Sandslash
-         null
-         null
-         null
-         null
-         Charizard
-         null
-         null
-         null
-         Zapdos
-         null
-         null
-         null
-         Dragonite
-         Mudkip ~> Mewtwo ~> Beedrill
-         Mew
-         Electabuzz
-         null
-         null
-         null
-         null
-         null
-         null
-         null
-         null
-         null
-         */
+    public void initialization() {
+        assertEquals(0, map1.size());
+        assertNull(map1.getTable()[0]);
+        assertEquals(13, map1.getTable().length);
     }
 
     @Test(timeout = TIMEOUT)
-    public void testRemove() {
-        //We want to remove keys (in this order): 13, 27, 28, 26, 39, 14, 40, 15
-        //Removing 13
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals("A", presetMap.remove(13));
-        expectedPreset[0].getNext().setNext(null);
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals(7, presetMap.size());
+    @SuppressWarnings("unchecked")
+    public void testPut() {
+        assertThrows(IllegalArgumentException.class, () -> map1.put(null, "Johnny"));
+        assertThrows(IllegalArgumentException.class, () -> map1.put(2, null));
+        assertThrows(IllegalArgumentException.class, () -> map1.put(null, null));
 
-        //Removing 27
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals("E", presetMap.remove(27));
-        expectedPreset[1].setNext(expectedPreset[1].getNext().getNext());
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals(6, presetMap.size());
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(3, "d"));
+        assertNull(map1.put(4, "e"));
+        assertNull(map1.put(5, "f"));
+        assertNull(map1.put(6, "h"));
+        assertEquals(7, map1.size());
+        assertEquals("h", map1.put(6,"g"));
+        assertEquals(7, map1.size());
+        assertNull(map1.put(7, "h"));
+        assertEquals(8, map1.size());
+        assertEquals(13, map1.getTable().length);
 
-        //Removing 28
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals("H", presetMap.remove(28));
-        expectedPreset[2] = expectedPreset[2].getNext();
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals(5, presetMap.size());
+        assertNull(map1.put(8, "i"));
+        assertEquals(9, map1.size());
+        assertEquals(27, map1.getTable().length);
 
-        //Removing 26
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals("B", presetMap.remove(26));
-        expectedPreset[0].setNext(null);
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals(4, presetMap.size());
+        map1.clear();
 
-        //Removing 39
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals("C", presetMap.remove(39));
-        expectedPreset[0] = null;
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals(3, presetMap.size());
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(26, "b")); //@ index 0
+        assertNull(map1.put(39, "c")); //@ index 0
+        assertNull(map1.put(52, "d")); //@ index 0
+        assertEquals(6, map1.size());
+        assertEquals(13, map1.getTable().length);
+        assertEquals("d", map1.getTable()[0].getValue());
+        assertEquals("c", map1.getTable()[0].getNext().getValue());
+        assertEquals("b", map1.getTable()[0].getNext().getNext().getValue());
+        assertEquals("a", map1.getTable()[0].getNext().getNext().getNext().getValue());
+        assertEquals("c", map1.put(39, "z"));
+        assertEquals(6, map1.size());
+        assertEquals("z", map1.getTable()[0].getNext().getValue());
+        assertNull(map1.put(28, "g")); //@ index 2
+        assertNull(map1.put(41, "l")); //@ index 2
+        assertEquals("l", map1.getTable()[2].getValue());
+        assertEquals("g", map1.getTable()[2].getNext().getValue());
+        assertEquals("c", map1.getTable()[2].getNext().getNext().getValue());
+        assertEquals(8, map1.size());
+        assertNull(map1.put(4, "p"));
+        assertEquals(9, map1.size());
 
-        //Removing 14
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals("D", presetMap.remove(14));
-        expectedPreset[1].setNext(null);
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals(2, presetMap.size());
-
-        //Removing 40
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals("F", presetMap.remove(40));
-        expectedPreset[1] = null;
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals(1, presetMap.size());
-
-        //Removing 15
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals("G", presetMap.remove(15));
-        expectedPreset[2] = null;
-        assertMapEquals(expectedPreset, presetMap.getTable());
-        assertEquals(0, presetMap.size());
-
-        expectedPreset =
-                new ExternalChainingMapEntry[ExternalChainingHashMap.INITIAL_CAPACITY];
-
-        assertMapEquals(expectedPreset, presetMap.getTable());
-    }
-
-    @Test(timeout = TIMEOUT)
-    public void testGet() {
-        // [(0, A), (1, B), (2, C), (3, D), (4, E), _, _, _, _, _, _, _, _]
-        assertEquals("C", presetMap.get(39));
-        assertEquals("B", presetMap.get(26));
-        assertEquals("A", presetMap.get(13));
-        assertEquals("F", presetMap.get(40));
-        assertEquals("E", presetMap.get(27));
-        assertEquals("D", presetMap.get(14));
-        assertEquals("H", presetMap.get(28));
-        assertEquals("G", presetMap.get(15));
-        assertThrows(IllegalArgumentException.class, () -> presetMap.get(null));
-        assertThrows(NoSuchElementException.class, () -> presetMap.get(41));
-
-        ExternalChainingMapEntry<Integer, String>[] map = presetMap.getTable();
-
-        for (int i = 3; i < map.length; i++) {
-            assertNull(map[i]);
-        }
-    }
-
-    @Test(timeout = TIMEOUT)
-    public void testContainsKey() {
-        assertThrows(IllegalArgumentException.class, () -> presetMap.containsKey(null));
-
-        Set<Integer> expectedKeys = new HashSet<>();
-        expectedKeys.add(39);
-        expectedKeys.add(26);
-        expectedKeys.add(13);
-        expectedKeys.add(40);
-        expectedKeys.add(27);
-        expectedKeys.add(14);
-        expectedKeys.add(28);
-        expectedKeys.add(15);
-
-        for (Integer key: expectedKeys) {
-            if (!presetMap.containsKey(key)) {
-                throw new AssertionError("Preset Map not contain Key: " + key);
+        ExternalChainingMapEntry<Integer, String>[] arr = map1.getTable();
+        for(int i = 0; i < arr.length; i++) {
+            if (i == 1) {
+                continue;
+            }
+            if (arr[i] != null) {
+                assertNull(arr[i].getNext());
             }
         }
-    }
-
-    @Test(timeout = TIMEOUT)
-    public void testKeySet() {
-        Set<Integer> expectedKeys = new HashSet<>();
-        expectedKeys.add(39);
-        expectedKeys.add(26);
-        expectedKeys.add(13);
-        expectedKeys.add(40);
-        expectedKeys.add(27);
-        expectedKeys.add(14);
-        expectedKeys.add(28);
-        expectedKeys.add(15);
-
-        assertEquals(expectedKeys, presetMap.keySet());
-    }
-
-    @Test(timeout = TIMEOUT)
-    public void testValues() {
-        List<String> expected = new LinkedList<>();
-        expected.add("C");
-        expected.add("B");
-        expected.add("A");
-        expected.add("F");
-        expected.add("E");
-        expected.add("D");
-        expected.add("H");
-        expected.add("G");
-
-        assertEquals(expected, presetMap.values());
+        assertEquals("g", arr[1].getValue());
+        assertEquals("b", arr[1].getNext().getValue());
+        assertNull(arr[1].getNext().getNext());
+        assertEquals("a", arr[0].getValue());
+        assertEquals("d", arr[25].getValue());
     }
 
     @Test(timeout = TIMEOUT)
     public void testResize() {
-        assertNull(map.put(0, "A"));
-        assertNull(map.put(1, "B"));
-        assertNull(map.put(2, "C"));
-        assertNull(map.put(3, "D"));
-        assertNull(map.put(4, "E"));
-        assertEquals(5, map.size());
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(3, "d"));
+        assertNull(map1.put(4, "e"));
+        assertNull(map1.put(5, "f"));
+        assertNull(map1.put(6, "h"));
 
-        assertThrows(IllegalArgumentException.class, () -> map.resizeBackingTable(4));
-        assertThrows(IllegalArgumentException.class, () -> map.resizeBackingTable(-4));
+        assertThrows(IllegalArgumentException.class, () -> map1.resizeBackingTable(3));
+        map1.resizeBackingTable(7);
+        ExternalChainingMapEntry<Integer, String>[] arr = map1.getTable();
+        assertEquals(7, map1.getTable().length);
+        assertEquals(7, map1.size());
+        assertEquals("a", arr[0].getValue());
+        assertEquals("b", arr[1].getValue());
+        assertEquals("c", arr[2].getValue());
+        assertEquals("d", arr[3].getValue());
+        assertEquals("e", arr[4].getValue());
+        assertEquals("f", arr[5].getValue());
+        assertEquals("h", arr[6].getValue());
 
-        map.resizeBackingTable(5);
-        double loadFactor = (map.size() * 1.0) / map.getTable().length;
-        assertEquals(1.0, loadFactor, 0);
-        assertEquals(5, map.size());
+        map1.clear();
 
-        ExternalChainingMapEntry<Integer, String>[] expected =
-                (ExternalChainingMapEntry<Integer, String>[])
-                        new ExternalChainingMapEntry[5];
-        expected[0] = new ExternalChainingMapEntry<>(0, "A");
-        expected[1] = new ExternalChainingMapEntry<>(1, "B");
-        expected[2] = new ExternalChainingMapEntry<>(2, "C");
-        expected[3] = new ExternalChainingMapEntry<>(3, "D");
-        expected[4] = new ExternalChainingMapEntry<>(4, "E");
-        assertMapEquals(expected, map.getTable());
-
-        map.resizeBackingTable(10);
-        loadFactor = (map.size() * 1.0) / map.getTable().length;
-        assertEquals(0.5, loadFactor, 0);
-        assertEquals(5, map.size());
-
-        map.resizeBackingTable(15);
-        loadFactor = (map.size() * 1.0) / map.getTable().length;
-        assertEquals((5.0 / 15), loadFactor, 0);
-        assertEquals(5, map.size());
-
-        map.resizeBackingTable(20);
-        loadFactor = (map.size() * 1.0) / map.getTable().length;
-        assertEquals((5.0 / 20), loadFactor, 0);
-        assertEquals(5, map.size());
-
-        //Now let's try with our preset map
-        assertMapEquals(expectedPreset, presetMap.getTable());
-
-        assertThrows(IllegalArgumentException.class, () -> presetMap.resizeBackingTable(7));
-        presetMap.resizeBackingTable(10);
-        loadFactor = (presetMap.size() * 1.0) / presetMap.getTable().length;
-        assertEquals((8.0 / 10), loadFactor, 0);
-        assertEquals(8, presetMap.size());
-
-        presetMap.resizeBackingTable(15);
-        loadFactor = (presetMap.size() * 1.0) / presetMap.getTable().length;
-        assertEquals((8.0 / 15), loadFactor, 0);
-        assertEquals(8, presetMap.size());
-
-        presetMap.resizeBackingTable(20);
-        loadFactor = (presetMap.size() * 1.0) / presetMap.getTable().length;
-        assertEquals((8.0 / 20), loadFactor, 0);
-        assertEquals(8, presetMap.size());
-
-        presetMap.resizeBackingTable(13);
-        loadFactor = (presetMap.size() * 1.0) / presetMap.getTable().length;
-        assertEquals((8.0 / 13), loadFactor, 0);
-        assertEquals(8, presetMap.size());
-
-        presetMap.put(41, "I");
-        loadFactor = (presetMap.size() * 1.0) / presetMap.getTable().length;
-        assertEquals((9.0 / 27), loadFactor, 0);
-        assertEquals(9, presetMap.size());
-
-        //Let's test our map if this is resized properly
-        expected = (ExternalChainingMapEntry<Integer, String>[])
-                new ExternalChainingMapEntry[27];
-
-        expected[0] = new ExternalChainingMapEntry<>(27, "E");
-        expected[1] = new ExternalChainingMapEntry<>(28, "H");
-        expected[12] = new ExternalChainingMapEntry<>(39, "C");
-        expected[13] = new ExternalChainingMapEntry<>(40, "F");
-        expected[13].setNext(new ExternalChainingMapEntry<>(13, "A"));
-        expected[14] = new ExternalChainingMapEntry<>(41, "I");
-        expected[14].setNext(new ExternalChainingMapEntry<>(14, "D"));
-        expected[15] = new ExternalChainingMapEntry<>(15, "G");
-        expected[26] = new ExternalChainingMapEntry<>(26, "B");
-        //printHashTable(presetMap.getTable());
-        assertMapEquals(expected, presetMap.getTable());
-
-        presetMap.put(42, "J");
-        expected[15] = new ExternalChainingMapEntry<>(42, "J");
-        expected[15].setNext(new ExternalChainingMapEntry<>(15, "G"));
-        assertMapEquals(expected, presetMap.getTable());
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(26, "b")); //2
+        assertNull(map1.put(39, "c")); //3
+        assertNull(map1.put(52, "d")); //4
+        map1.resizeBackingTable(6);
+        ExternalChainingMapEntry<Integer, String>[] arr1 = map1.getTable();
+        assertEquals("a", arr1[0].getValue());
+        assertEquals("b", arr1[1].getValue());
+        assertEquals("c", arr1[2].getValue());
+        assertEquals("b", arr1[2].getNext().getValue());
+        assertEquals("c", arr1[3].getValue());
+        assertEquals("d", arr1[4].getValue());
+        for(int i = 0; i < arr1.length; i++) {
+            if (i == 2) {
+                continue;
+            }
+            if (arr[i] != null) {
+                assertNull(arr[i].getNext());
+            }
+        }
     }
 
     @Test(timeout = TIMEOUT)
-    public void testClear() {
-        // [(0, A), (1, B), (2, C), (3, D), (4, E), _, _, _, _, _, _, _, _]
-        assertNull(map.put(0, "A"));
-        assertNull(map.put(1, "B"));
-        assertNull(map.put(2, "C"));
-        assertNull(map.put(3, "D"));
-        assertNull(map.put(4, "E"));
-        assertEquals(5, map.size());
+    public void testRemove() {
+        assertThrows(IllegalArgumentException.class, () -> map1.remove(null));
+        assertThrows(NoSuchElementException.class, () -> map1.remove(5));
 
-        map.clear();
-        assertEquals(0, map.size());
-        assertMapEquals(new ExternalChainingMapEntry[ExternalChainingHashMap
-                .INITIAL_CAPACITY], map.getTable());
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(3, "d"));
+        assertNull(map1.put(4, "e"));
+        assertNull(map1.put(5, "f"));
+        assertNull(map1.put(6, "h"));
+
+
+        assertEquals(13, map1.getTable().length);
+        assertEquals("h", map1.remove(6));
+        assertEquals(6, map1.size());
+        assertNull(map1.getTable()[6]);
+        assertEquals("f", map1.remove(5));
+        assertEquals(5, map1.size());
+        assertNull(map1.getTable()[5]);
+        assertEquals("e", map1.remove(4));
+        assertEquals(4, map1.size());
+        assertNull(map1.getTable()[4]);
+        assertEquals("d", map1.remove(3));
+        assertEquals(3, map1.size());
+        assertNull(map1.getTable()[3]);
+        assertEquals("c", map1.remove(2));
+        assertEquals(2, map1.size());
+        assertNull(map1.getTable()[2]);
+        assertEquals("b", map1.remove(1));
+        assertEquals(1, map1.size());
+        assertNull(map1.getTable()[1]);
+        assertEquals("a", map1.remove(0));
+        assertNull(map1.getTable()[0]);
+        assertEquals(0, map1.size());
+        assertEquals(13, map1.getTable().length);
+
+        map1.clear();
+
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(26, "b"));
+        assertNull(map1.put(39, "c"));
+        assertNull(map1.put(52, "d"));
+        assertEquals("c", map1.getTable()[0].getNext().getValue());
+        assertEquals("c", map1.remove(39));
+        assertEquals("b", map1.getTable()[0].getNext().getValue());
+        assertEquals("a", map1.getTable()[0].getNext().getNext().getValue());
+        assertNull(map1.getTable()[0].getNext().getNext().getNext());
+        assertEquals(5, map1.size());
+        assertEquals("d", map1.remove(52));
+        assertEquals("a", map1.getTable()[0].getNext().getValue());
+        assertEquals("b", map1.getTable()[0].getValue());
+        assertNull(map1.put(52, "d"));
+        assertNull(map1.put(39, "c")); // @index 0, c -> d -> b -> a
+        assertEquals("b", map1.remove(26));
+        assertEquals("a", map1.getTable()[0].getNext().getNext().getValue());
+        map1.put(26, "b");
+        assertEquals("b", map1.remove(26));
+        assertEquals("a", map1.getTable()[0].getNext().getNext().getValue());
+        map1.remove(52);
+        map1.remove(39);
+        map1.remove(0);
+        assertNull(map1.getTable()[0]);
     }
 
-    /**
-     * Prints out the HashMap for easy display for user.
-     * @param table the inputted HashMap
-     */
-    public void printHashTable(ExternalChainingMapEntry<Integer, String>[] table) {
-        for (int i = 0; i < table.length; i++) {
-            ExternalChainingMapEntry<Integer, String> entry = table[i];
-            while (entry != null) {
-                System.out.print(entry + " ~> ");
-                entry = entry.getNext();
-            }
-            System.out.println();
+    @Test(timeout = TIMEOUT)
+    public void getTest() {
+        assertThrows(IllegalArgumentException.class, () -> map1.get(null));
+        assertThrows(NoSuchElementException.class, () -> map1.get(5));
+
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(3, "d"));
+        assertNull(map1.put(4, "e"));
+        assertNull(map1.put(5, "f"));
+        assertNull(map1.put(6, "h"));
+
+        assertEquals("a", map1.get(0));
+        assertEquals("b", map1.get(1));
+        assertEquals("c", map1.get(2));
+        assertEquals("d", map1.get(3));
+        assertEquals("e", map1.get(4));
+        assertEquals("f", map1.get(5));
+        assertEquals("h", map1.get(6));
+        assertEquals(7, map1.size());
+
+        map1.clear();
+
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(26, "b"));
+        assertNull(map1.put(39, "c"));
+        assertNull(map1.put(52, "d"));
+
+        assertEquals(6, map1.size());
+        assertEquals("b", map1.get(26));
+        assertEquals("c", map1.get(39));
+        assertEquals("d", map1.get(52));
+        assertEquals(6, map1.size());
+
+        assertThrows(NoSuchElementException.class, () -> map1.get(69));
+        assertThrows(NoSuchElementException.class, () -> map1.get(78));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void containsTest() {
+        assertThrows(IllegalArgumentException.class, () -> map1.containsKey(null));
+
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(3, "d"));
+        assertNull(map1.put(4, "e"));
+        assertNull(map1.put(5, "f"));
+        assertNull(map1.put(6, "h"));
+
+        assertTrue(map1.containsKey(0));
+        assertTrue(map1.containsKey(1));
+        assertTrue(map1.containsKey(2));
+        assertTrue(map1.containsKey(3));
+        assertTrue(map1.containsKey(4));
+        assertTrue(map1.containsKey(5));
+        assertTrue(map1.containsKey(6));
+        assertFalse(map1.containsKey(69));
+        assertFalse(map1.containsKey(59));
+        assertFalse(map1.containsKey(54));
+
+        map1.clear();
+
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(26, "b"));
+        assertNull(map1.put(39, "c"));
+        assertNull(map1.put(52, "d"));
+
+        assertTrue(map1.containsKey(26));
+        assertTrue(map1.containsKey(39));
+        assertTrue(map1.containsKey(52));
+        assertTrue(map1.containsKey(0));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void keySetTest() {
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(3, "d"));
+        assertNull(map1.put(4, "e"));
+        assertNull(map1.put(5, "f"));
+        assertNull(map1.put(6, "h"));
+
+        Set<Integer> keySet = map1.keySet();
+
+        assertTrue(keySet.size() == map1.size());
+        for(Integer a : keySet) {
+            assertTrue(map1.containsKey(a));
+        }
+
+        map1.clear();
+
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(26, "b"));
+        assertNull(map1.put(39, "c"));
+        assertNull(map1.put(52, "d"));
+
+        keySet = map1.keySet();
+        assertTrue(keySet.size() == map1.size());
+        for(Integer a : keySet) {
+            assertTrue(map1.containsKey(a));
         }
     }
 
-    /**
-     * This method verifies whether the backing array of the HashMap is
-     * equivalent to a passed in expected array. The method iterates through
-     * the expected array, and checks each node and verifies whether it exists
-     * in the actual backing array -- if not, then throw AssertionError!
-     *
-     * @param expected the expected layout of the HashMap
-     * @param actual the actual layout of the HashMap
-     * @throws AssertionError if the HashMaps are not "equal" in content
-     */
-    public void assertMapEquals(ExternalChainingMapEntry<Integer, String>[] expected,
-                                ExternalChainingMapEntry<Integer, String>[] actual) {
+    @Test(timeout = TIMEOUT)
+    public void valuesTest() {
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(3, "d"));
+        assertNull(map1.put(4, "e"));
+        assertNull(map1.put(5, "f"));
+        assertNull(map1.put(6, "h"));
 
-        if (expected.length != actual.length) {
-            throw new AssertionError("Map backing lengths are different");
-        }
+        List<String> values = map1.values();
 
-        for (int i = 0; i < expected.length; i++) {
-            ExternalChainingMapEntry<Integer, String> expectedEntry =
-                    expected[i];
-            ExternalChainingMapEntry<Integer, String> actualEntry =
-                    actual[i];
-            while (expectedEntry != null || actualEntry != null) {
-                try {
-                    if (!expectedEntry.equals(actualEntry)) {
-                        throw new AssertionError("Maps are not equal at " + i
-                                + "th index");
-                    }
-                } catch (NullPointerException ex) {
-                    throw new AssertionError("Maps are not equal at " + i
-                            + "th index");
-                }
-                expectedEntry = expectedEntry.getNext();
-                actualEntry = actualEntry.getNext();
-            }
-        }
+        assertTrue(values.size() == map1.size());
+        assertEquals("a", values.get(0));
+        assertEquals("b", values.get(1));
+        assertEquals("c", values.get(2));
+        assertEquals("d", values.get(3));
+        assertEquals("e", values.get(4));
+        assertEquals("f", values.get(5));
+
+        map1.clear();
+
+        assertNull(map1.put(0, "a"));
+        assertNull(map1.put(1, "b"));
+        assertNull(map1.put(2, "c"));
+        assertNull(map1.put(26, "b"));
+        assertNull(map1.put(39, "c"));
+        assertNull(map1.put(52, "d"));
+
+        values = map1.values();
+        assertTrue(values.size() == map1.size());
+        assertEquals("d", values.get(0));
+        assertEquals("c", values.get(1));
+        assertEquals("b", values.get(2));
+        assertEquals("a", values.get(3));
+        assertEquals("b", values.get(4));
+        assertEquals("c", values.get(5));
     }
-
 }

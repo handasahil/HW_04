@@ -15,10 +15,27 @@ public class main {
         presetMap.put(28, "H");
 
 
+        ExternalChainingHashMap<Integer, String> map = new ExternalChainingHashMap<>();
+
+        for (int i = 0; i < 26; i++) {
+            map.put(i * 13, (char) (i + 65) + "");
+        }
+
+        System.out.println(map.get(104));
+        System.out.println(map.getTable().length);
+        System.out.println(map.keySet());
+        System.out.println(map.values());
 
 
-//        char hi = (char) (0 + 65) + "";
-//        System.out.println(hi);
+
+        ExternalChainingHashMap<Integer, String> get = new ExternalChainingHashMap<>();
+        get.put(2, "C");
+        get.put(0, "A");
+        get.put(1, "B");
+        get.put(3, "D");
+        get.put(4, "E");
+        get.put(14, "F");
+        System.out.println(get.get(1));
 
 
     }

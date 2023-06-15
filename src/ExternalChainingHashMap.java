@@ -1,12 +1,16 @@
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.NoSuchElementException;
+import java.util.ArrayList;
 
 /**
  * Your implementation of a ExternalChainingHashMap.
  *
- * @author YOUR NAME HERE
+ * @author SAHIL HANDA
  * @version 1.0
- * @userid YOUR USER ID HERE (i.e. gburdell3)
- * @GTID YOUR GT ID HERE (i.e. 900000000)
+ * @userid shanda34
+ * @GTID 903784895
  *
  * Collaborators: LIST ALL COLLABORATORS YOU WORKED WITH HERE
  *
@@ -106,8 +110,6 @@ public class ExternalChainingHashMap<K, V> {
         ExternalChainingMapEntry<K, V> add = new ExternalChainingMapEntry<>(key, value);
 
         double loadFactor = (double) (size + 1) / (double) table.length;
-//        double sizeD = size;
-//        double lengthD = table.length;
 
         if (loadFactor > MAX_LOAD_FACTOR) {
             resizeBackingTable(2 * table.length + 1);
@@ -115,10 +117,7 @@ public class ExternalChainingHashMap<K, V> {
 
         int hash = Math.abs(key.hashCode() % table.length);
 
-        if (table[hash] == null) {
-            table[hash] = add;
-            size++;
-        } else {
+        if (table[hash] != null) {
             ExternalChainingMapEntry<K, V> curr = table[hash];
             if (curr.getKey() == key) {
                 V rtn = curr.getValue();
@@ -136,9 +135,9 @@ public class ExternalChainingHashMap<K, V> {
             }
 
             add.setNext(table[hash]);
-            table[hash] = add;
-            size++;
         }
+        table[hash] = add;
+        size++;
         return null;
     }
 
@@ -155,24 +154,24 @@ public class ExternalChainingHashMap<K, V> {
             throw new IllegalArgumentException("remove: the specified key is null");
         }
 
-        for (int i = 0; i < table.length; i++) {
-            if (table[i] != null) {
-                if (table[i].getKey() == key) {
-                    V rtn = table[i].getValue();
-                    table[i] = table[i].getNext();
-                    size--;
-                    return rtn;
-                } else {
-                    ExternalChainingMapEntry<K, V> curr = table[i];
-                    while (curr.getNext() != null) {
-                        if (curr.getNext().getKey() == key) {
-                            V rtn = curr.getNext().getValue();
-                            curr.setNext(curr.getNext().getNext());
-                            size--;
-                            return rtn;
-                        }
-                        curr = curr.getNext();
+        int hash = Math.abs(key.hashCode() % table.length);
+
+        if (table[hash] != null) {
+            if (table[hash].getKey().equals(key)) {
+                V rtn = table[hash].getValue();
+                table[hash] = table[hash].getNext();
+                size--;
+                return rtn;
+            } else {
+                ExternalChainingMapEntry<K, V> curr = table[hash];
+                while (curr.getNext() != null) {
+                    if (curr.getNext().getKey() == key) {
+                        V rtn = curr.getNext().getValue();
+                        curr.setNext(curr.getNext().getNext());
+                        size--;
+                        return rtn;
                     }
+                    curr = curr.getNext();
                 }
             }
         }
@@ -190,28 +189,26 @@ public class ExternalChainingHashMap<K, V> {
      */
     public V get(K key) {
         if (key == null) {
-            throw new IllegalArgumentException("remove: the specified key is null");
+            throw new IllegalArgumentException("get: the specified key is null");
         }
 
-        for (int i = 0; i < table.length; i++) {
-            if (table[i] != null) {
-                if (table[i].getKey() == key) {
-                    V rtn = table[i].getValue();
-                    return rtn;
-                } else {
-                    ExternalChainingMapEntry<K, V> curr = table[i];
-                    while (curr.getNext() != null) {
-                        if (curr.getNext().getKey() == key) {
-                            V rtn = curr.getNext().getValue();
-                            return rtn;
-                        }
-                        curr = curr.getNext();
+        int hash = Math.abs(key.hashCode() % table.length);
+
+        if (table[hash] != null) {
+            if (table[hash].getKey().equals(key)) {
+                return table[hash].getValue();
+            } else {
+                ExternalChainingMapEntry<K, V> curr = table[hash];
+                while (curr.getNext() != null) {
+                    if (curr.getNext().getKey() == key) {
+                        return curr.getNext().getValue();
                     }
+                    curr = curr.getNext();
                 }
             }
         }
 
-        throw new NoSuchElementException("remove: the specified key is not in the table");
+        throw new NoSuchElementException("get: the specified key is not in the table");
     }
 
     /**
@@ -224,24 +221,25 @@ public class ExternalChainingHashMap<K, V> {
      */
     public boolean containsKey(K key) {
         if (key == null) {
-            throw new IllegalArgumentException("remove: the specified key is null");
+            throw new IllegalArgumentException("containsKey: the specified key is null");
         }
 
-        for (int i = 0; i < table.length; i++) {
-            if (table[i] != null) {
-                if (table[i].getKey() == key) {
-                    return true;
-                } else {
-                    ExternalChainingMapEntry<K, V> curr = table[i];
-                    while (curr.getNext() != null) {
-                        if (curr.getNext().getKey() == key) {
-                            return true;
-                        }
-                        curr = curr.getNext();
+        int hash = Math.abs(key.hashCode() % table.length);
+
+        if (table[hash] != null) {
+            if (table[hash].getKey().equals(key)) {
+                return true;
+            } else {
+                ExternalChainingMapEntry<K, V> curr = table[hash];
+                while (curr.getNext() != null) {
+                    if (curr.getNext().getKey() == key) {
+                        return true;
                     }
+                    curr = curr.getNext();
                 }
             }
         }
+
         return false;
     }
 
@@ -320,8 +318,8 @@ public class ExternalChainingHashMap<K, V> {
      */
     public void resizeBackingTable(int length) {
         if (length < keySet().size()) {
-            throw new IllegalArgumentException("resizeBackingTable: the specified length is less than the number of " +
-                    "items in the hash map");
+            throw new IllegalArgumentException("resizeBackingTable: the specified length is less than the number of "
+                    + "items in the hash map");
         }
         ExternalChainingMapEntry<K, V>[] temp = new ExternalChainingMapEntry[length];
 
@@ -333,6 +331,7 @@ public class ExternalChainingHashMap<K, V> {
                 ExternalChainingMapEntry<K, V> curr = table[i];
                 table[i] = curr.getNext();
 
+                curr.setNext(null);
                 if (temp[hash] != null) {
                     curr.setNext(temp[hash]);
                 }
